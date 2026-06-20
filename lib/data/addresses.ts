@@ -32,7 +32,7 @@ export async function getAddressById(id: string): Promise<Address | null> {
 }
 
 export async function createAddress(
-  input: ShippingAddressCreateInput,
+  input: ShippingAddressCreateInput & { userId: string },
 ): Promise<Address> {
   return db.transaction(async (tx) => {
     if (input.isDefault) {

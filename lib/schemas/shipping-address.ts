@@ -14,7 +14,12 @@ const line2 = z.string().trim().max(200).optional().or(z.literal(""));
  * `isDefault` demotes any existing default (enforced in the data layer).
  */
 export const shippingAddressCreateSchema = z.object({
-  userId: z.string().trim().min(1, "User is required."),
+  /**
+   * Target user. Optional from the client: self-service callers omit it (the
+   * route uses their own id); admins may set it to add an address for someone
+   * else. The route resolves + authorizes the final owner either way.
+   */
+  userId: z.string().trim().min(1).optional(),
   label: addressLabelEnum.default("home"),
   name: z.string().trim().min(1, "Recipient name is required.").max(120),
   line1: z.string().trim().min(1, "Address line 1 is required.").max(200),
