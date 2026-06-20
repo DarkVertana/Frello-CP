@@ -16,6 +16,7 @@ import { OrdersTab } from "./_components/orders-tab";
 import { TicketsTab } from "./_components/tickets-tab";
 import { ScansTab } from "./_components/scans-tab";
 import { AddressesTab } from "./_components/addresses-tab";
+import { SavedTab } from "./_components/saved-tab";
 
 export const metadata: Metadata = { title: "User detail" };
 export const dynamic = "force-dynamic";
@@ -95,6 +96,8 @@ export default async function UserDetailPage({
         <ActivityFeed userId={id} />
       ) : tab === "orders" ? (
         <OrdersTab userId={id} />
+      ) : tab === "saved" ? (
+        <SavedTab userId={id} canManage={canManage(session.user.role)} />
       ) : tab === "tickets" ? (
         <TicketsTab userId={id} />
       ) : tab === "scans" ? (

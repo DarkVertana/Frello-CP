@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -130,10 +131,41 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   }),
 }));
 
+/**
+ * Per-user saved / favourite products (the customer's wishlist). One row per
+ * (user, product); the unique index makes saving idempotent. Deleting a product
+ * cascades its saves away.
+ */
+export const savedProducts = pgTable(
+  "saved_products",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** FK to Better Auth's `user.id` (text, no DB-level FK — same as orders). */
+    userId: text("user_id").notNull(),
+    productId: uuid("product_id")
+      .references(() => products.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("saved_products_user_product_idx").on(table.userId, table.productId),
+    index("saved_products_user_idx").on(table.userId),
+  ],
+);
+
+export const savedProductsRelations = relations(savedProducts, ({ one }) => ({
+  product: one(products, {
+    fields: [savedProducts.productId],
+    references: [products.id],
+  }),
+}));
+
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
+export type SavedProduct = typeof savedProducts.$inferSelect;
+export type NewSavedProduct = typeof savedProducts.$inferInsert;
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type OrderItem = typeof orderItems.$inferSelect;

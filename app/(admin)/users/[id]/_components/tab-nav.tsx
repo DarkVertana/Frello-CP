@@ -3,6 +3,7 @@ import Link from "next/link";
 export type TabId =
   | "overview"
   | "orders"
+  | "saved"
   | "addresses"
   | "payment-methods"
   | "tickets"
@@ -12,6 +13,7 @@ export type TabId =
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "orders", label: "Orders" },
+  { id: "saved", label: "Saved" },
   { id: "addresses", label: "Addresses" },
   { id: "payment-methods", label: "Payment methods" },
   { id: "tickets", label: "Tickets" },
@@ -53,6 +55,7 @@ export function parseTab(raw: string | undefined): TabId {
   const ids: TabId[] = [
     "overview",
     "orders",
+    "saved",
     "addresses",
     "payment-methods",
     "tickets",
