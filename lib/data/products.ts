@@ -178,6 +178,47 @@ export async function getCatalogProductBySlug(
   return row ? { ...row.product, category: row.category } : null;
 }
 
+/**
+ * Public product search — active products whose name, slug, or description
+ * matches `query`. Ranked by rating, capped at `limit` (1–50). Backs the app's
+ * search bar / autocomplete. Empty query → no results.
+ */
+export async function searchProducts(
+  query: string,
+  limit = 20,
+): Promise<ProductWithCategory[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const like = `%${q}%`;
+  const cap = Math.min(Math.max(Math.trunc(limit) || 20, 1), 50);
+
+  const rows = await db
+    .select({
+      product: products,
+      category: {
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+      },
+    })
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        eq(products.isActive, true),
+        or(
+          ilike(products.name, like),
+          ilike(products.slug, like),
+          ilike(products.description, like),
+        ),
+      ),
+    )
+    .orderBy(desc(products.rating), asc(products.name))
+    .limit(cap);
+
+  return rows.map((r) => ({ ...r.product, category: r.category }));
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const [row] = await db
     .select()
