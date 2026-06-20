@@ -12,8 +12,11 @@ import {
 } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  addresses,
+  cartItems,
   orderItems,
   orders,
+  products,
   user,
   type Order,
   type OrderItem,
@@ -24,6 +27,7 @@ import {
   canTransition,
   type OrderStatusValue,
 } from "@/lib/orders/transitions";
+import { getActiveCurrency } from "@/lib/data/settings";
 import type {
   OrderListFilters,
   OrderUpdateInput,
@@ -147,6 +151,107 @@ export async function getOrderById(id: string): Promise<OrderDetail | null> {
     .orderBy(asc(orderItems.name));
 
   return { ...head.order, customer: head.customer, items };
+}
+
+/**
+ * Checkout: create an order from the user's cart in one transaction —
+ * snapshots item name/price, totals it, stamps the initial "pending" timeline
+ * entry, and empties the cart. Prices/totals are integer minor units.
+ *
+ * Stock is not decremented here (no restock-on-cancel logic yet); inactive
+ * products block checkout so removed items can't be ordered.
+ */
+export async function createOrder(input: {
+  userId: string;
+  shippingAddressId?: string;
+  paymentMethod: string;
+  notes?: string;
+  actor: { id: string; name: string };
+}): Promise<OrderDetail> {
+  const currency = await getActiveCurrency();
+
+  const orderId = await db.transaction(async (tx) => {
+    if (input.shippingAddressId) {
+      const [addr] = await tx
+        .select({ userId: addresses.userId })
+        .from(addresses)
+        .where(eq(addresses.id, input.shippingAddressId))
+        .limit(1);
+      if (!addr || addr.userId !== input.userId) {
+        throw new APIError("BAD_REQUEST", "Invalid shipping address.");
+      }
+    }
+
+    const cart = await tx
+      .select({
+        productId: products.id,
+        name: products.name,
+        price: products.price,
+        isActive: products.isActive,
+        quantity: cartItems.quantity,
+      })
+      .from(cartItems)
+      .innerJoin(products, eq(cartItems.productId, products.id))
+      .where(eq(cartItems.userId, input.userId));
+
+    if (cart.length === 0) {
+      throw new APIError("BAD_REQUEST", "Your cart is empty.");
+    }
+    const gone = cart.find((c) => !c.isActive);
+    if (gone) {
+      throw new APIError(
+        "CONFLICT",
+        `"${gone.name}" is no longer available — remove it to check out.`,
+      );
+    }
+
+    const subtotal = cart.reduce((n, c) => n + c.price * c.quantity, 0);
+    const shipping = 0;
+    const tax = 0;
+    const total = subtotal + shipping + tax;
+
+    const entry: OrderTimelineEntry = {
+      status: "pending",
+      at: new Date().toISOString(),
+      byUserId: input.actor.id,
+      byName: input.actor.name,
+    };
+
+    const [order] = await tx
+      .insert(orders)
+      .values({
+        userId: input.userId,
+        status: "pending",
+        subtotal,
+        shipping,
+        tax,
+        total,
+        currency,
+        shippingAddressId: input.shippingAddressId ?? null,
+        paymentMethodRef: input.paymentMethod,
+        notes: input.notes ? input.notes : null,
+        timeline: [entry],
+      })
+      .returning();
+    if (!order) throw new APIError("INTERNAL", "Failed to create order.");
+
+    await tx.insert(orderItems).values(
+      cart.map((c) => ({
+        orderId: order.id,
+        productId: c.productId,
+        name: c.name,
+        qty: c.quantity,
+        priceAtOrder: c.price,
+      })),
+    );
+
+    await tx.delete(cartItems).where(eq(cartItems.userId, input.userId));
+    return order.id;
+  });
+
+  const detail = await getOrderById(orderId);
+  if (!detail) throw new APIError("INTERNAL", "Failed to load the new order.");
+  return detail;
 }
 
 export async function updateOrderMeta(

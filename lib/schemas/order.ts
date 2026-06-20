@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paymentMethodKeyEnum } from "./payment-method";
 
 export const orderStatusEnum = z.enum([
   "pending",
@@ -19,6 +20,20 @@ export const orderUpdateSchema = z.object({
     .optional()
     .or(z.literal("")),
   notes: z.string().trim().max(2000).nullable().optional().or(z.literal("")),
+});
+
+/**
+ * Checkout: turn the signed-in user's cart into an order. Items come from the
+ * cart server-side; the client only chooses an address + payment method.
+ */
+export const orderCreateSchema = z.object({
+  shippingAddressId: z
+    .string()
+    .trim()
+    .regex(/^[0-9a-f-]{36}$/i, "Invalid address id.")
+    .optional(),
+  paymentMethod: paymentMethodKeyEnum.default("cod"),
+  notes: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
 export const orderTransitionSchema = z.object({
@@ -44,6 +59,7 @@ export const orderListFiltersSchema = z.object({
   to: isoDate.optional(),
 });
 
+export type OrderCreateInput = z.infer<typeof orderCreateSchema>;
 export type OrderUpdateInput = z.infer<typeof orderUpdateSchema>;
 export type OrderTransitionInput = z.infer<typeof orderTransitionSchema>;
 export type OrderRefundInput = z.infer<typeof orderRefundSchema>;
