@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
+/*
+ * Frello design tokens. Light values live on :root; dark values swap via
+ * prefers-color-scheme. Brand greens mirror the Frello app
+ * (primary green #00CD52, deep green #092F00).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand */
+  --color-tint: #00cd52;
+  --color-tint-dark: #0a8f3c;
+  --color-tint-soft: #c7edd6;
+  --color-tint-deep: #092f00;
+  --color-danger: #c8372e;
+  --color-danger-soft: #fbe7e5;
+
+  /* Surfaces */
+  --color-card: #ffffff;
+  --color-background: #f7f8fa;
+  --color-border: #d7dae0;
+
+  /* Text */
+  --color-foreground: #0a0e13;
+  --color-muted: #60646c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Color tokens — referenced via var() so :root overrides at runtime. */
+  --color-tint: var(--color-tint);
+  --color-tint-dark: var(--color-tint-dark);
+  --color-tint-soft: var(--color-tint-soft);
+  --color-tint-deep: var(--color-tint-deep);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+
+  --color-card: var(--color-card);
+  --color-background: var(--color-background);
+  --color-border: var(--color-border);
+  --color-foreground: var(--color-foreground);
+  --color-muted: var(--color-muted);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Plant+ surface presets used by cards, inputs, chips. */
+  --radius-card: 20px;
+  --radius-input: 16px;
+  --shadow-card: 0 4px 12px rgb(0 0 0 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-tint: #2fe070;
+    --color-tint-dark: #00cd52;
+    --color-tint-soft: #0e2a1a;
+    --color-tint-deep: #b8f5cc;
+    --color-danger: #ff6b5c;
+    --color-danger-soft: #2a0f0e;
+
+    --color-card: #14181f;
+    --color-background: #0a0e13;
+    --color-border: #232830;
+    --color-foreground: #ecedee;
+    --color-muted: #9ba1a6;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
