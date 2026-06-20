@@ -10,6 +10,7 @@ import type {
   UserListFilters,
   UserUpdateInput,
 } from "@/lib/schemas/user";
+import type { ProfileUpdateInput } from "@/lib/schemas/profile";
 
 /**
  * Users data layer. Operates on Better Auth's `user` table extended with our
@@ -187,6 +188,45 @@ export async function updateUserProfile(
 
   const [after] = await db.update(user).set(next).where(eq(user.id, id)).returning();
   if (!after) throw new APIError("INTERNAL", "Failed to update user.");
+  return { before, after };
+}
+
+/**
+ * Self-service profile update — the signed-in user editing their own name,
+ * email, and phone. Unlike {@link updateUserProfile} (admin, name+phone only),
+ * this also allows changing the email, enforcing case-insensitive uniqueness
+ * so two accounts can never share one. Login continues to work on the new
+ * email — Better Auth looks credentials up by `user.email`.
+ */
+export async function updateProfile(
+  id: string,
+  patch: ProfileUpdateInput,
+): Promise<{ before: UserRow; after: UserRow }> {
+  const before = await getUserById(id);
+  if (!before) throw new APIError("NOT_FOUND", "Profile not found.");
+
+  if (patch.email !== undefined && patch.email !== before.email) {
+    const [clash] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.email, patch.email))
+      .limit(1);
+    if (clash && clash.id !== id) {
+      throw new APIError("CONFLICT", "That email is already in use.", {
+        email: "That email is already registered.",
+      });
+    }
+  }
+
+  const next = {
+    ...(patch.name !== undefined ? { name: patch.name } : {}),
+    ...(patch.email !== undefined ? { email: patch.email } : {}),
+    ...(patch.phone !== undefined ? { phone: patch.phone || null } : {}),
+    updatedAt: new Date(),
+  };
+
+  const [after] = await db.update(user).set(next).where(eq(user.id, id)).returning();
+  if (!after) throw new APIError("INTERNAL", "Failed to update profile.");
   return { before, after };
 }
 
