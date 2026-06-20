@@ -4,6 +4,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  Sprout,
   Tag,
   Users,
   type LucideIcon,
@@ -27,6 +28,7 @@ export const NAV: NavItem[] = [
   { href: "/products", label: "Products", icon: Package, roles: ALL_STAFF },
   { href: "/categories", label: "Categories", icon: Tag, roles: ALL_STAFF },
   { href: "/orders", label: "Orders", icon: ShoppingCart, roles: ALL_STAFF },
+  { href: "/consultations", label: "Consultations", icon: Sprout, roles: ALL_STAFF },
   { href: "/audit", label: "Audit log", icon: History, roles: ALL_STAFF },
   { href: "/settings", label: "Settings", icon: Settings, roles: ALL_STAFF },
 ];

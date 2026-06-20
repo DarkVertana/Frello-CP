@@ -54,3 +54,25 @@ export const broadcastStatus = pgEnum("broadcast_status", [
 ]);
 
 export const diseaseSeverity = pgEnum("disease_severity", ["low", "medium", "high"]);
+
+/** Fixed crop options offered in the app's consultation request form. */
+export const cropType = pgEnum("crop_type", [
+  "rice",
+  "wheat",
+  "maize",
+  "cotton",
+  "sugarcane",
+  "soybean",
+  "groundnut",
+  "pulses",
+  "vegetables",
+  "fruits",
+  "other",
+]);
+
+export const consultationStatus = pgEnum("consultation_status", [
+  "pending",
+  "scheduled",
+  "completed",
+  "cancelled",
+]);
