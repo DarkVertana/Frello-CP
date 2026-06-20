@@ -9,8 +9,10 @@ import { Banner } from "@/app/(auth)/_components/banner";
 import { SpinnerIcon } from "@/app/_components/icons";
 import { ImageUploader } from "../../_components/image-uploader";
 import { GalleryEditor } from "../../_components/gallery-editor";
+import { useCurrency } from "../../_components/currency-provider";
 import { AccentPicker } from "./accent-picker";
 import { productCreateSchema, slugify } from "@/lib/schemas/product";
+import { currencySymbol } from "@/lib/schemas/general";
 import type { Product } from "@/db/schema";
 
 type CategoryOption = { id: string; name: string; slug: string };
@@ -32,6 +34,7 @@ type FormState = {
   rating: string;
   reviewsCount: string;
   stock: string;
+  servesPerPerson: string;
   isActive: boolean;
   imageUrl: string;
   gallery: string[];
@@ -62,6 +65,7 @@ function initialState(product?: Product, categories: CategoryOption[] = []): For
     rating: product ? String(product.rating) : "0",
     reviewsCount: product ? String(product.reviewsCount) : "0",
     stock: product ? String(product.stock) : "0",
+    servesPerPerson: product?.servesPerPerson ?? "",
     isActive: product?.isActive ?? true,
     imageUrl: product?.imageUrl ?? "",
     gallery: product?.gallery ?? [],
@@ -73,6 +77,8 @@ function initialState(product?: Product, categories: CategoryOption[] = []): For
 export function ProductForm({ product, categories, onSuccess }: Props) {
   const router = useRouter();
   const isEdit = !!product;
+  const currency = useCurrency();
+  const symbol = currencySymbol(currency);
 
   const [state, setState] = useState(() => initialState(product, categories));
   const [slugDirty, setSlugDirty] = useState(false);
@@ -108,6 +114,7 @@ export function ProductForm({ product, categories, onSuccess }: Props) {
       rating: Number.parseFloat(state.rating || "0"),
       reviewsCount: Number.parseInt(state.reviewsCount || "0", 10) || 0,
       stock: Number.parseInt(state.stock || "0", 10) || 0,
+      servesPerPerson: state.servesPerPerson.trim(),
       isActive: state.isActive,
       imageUrl: state.imageUrl.trim(),
       gallery: state.gallery,
@@ -218,12 +225,12 @@ export function ProductForm({ product, categories, onSuccess }: Props) {
 
       <Section
         title="Price & stock"
-        description="Prices are in INR. Stored as paise on the server."
+        description={`Prices are in ${currency}. Stored in the smallest unit on the server.`}
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Field
-              label="Price (₹)"
+              label={`Price (${symbol})`}
               id="price"
               name="price"
               type="number"
@@ -239,7 +246,7 @@ export function ProductForm({ product, categories, onSuccess }: Props) {
           </div>
           <div>
             <Field
-              label="Original price (₹, optional)"
+              label={`Original price (${symbol}, optional)`}
               id="originalPrice"
               name="originalPrice"
               type="number"
@@ -302,6 +309,20 @@ export function ProductForm({ product, categories, onSuccess }: Props) {
               <FieldError>{fieldErrors.reviewsCount}</FieldError>
             ) : null}
           </div>
+        </div>
+
+        <div>
+          <Field
+            label="Serves per person (optional)"
+            id="servesPerPerson"
+            name="servesPerPerson"
+            value={state.servesPerPerson}
+            onChange={(event) => update("servesPerPerson", event.currentTarget.value)}
+            placeholder="e.g. 2 plants"
+          />
+          {fieldErrors.servesPerPerson ? (
+            <FieldError>{fieldErrors.servesPerPerson}</FieldError>
+          ) : null}
         </div>
 
         <label className="mt-2 inline-flex items-center gap-2 rounded-input border border-border bg-card px-3 py-2.5 text-sm text-foreground">

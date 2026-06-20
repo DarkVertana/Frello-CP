@@ -6,6 +6,18 @@ export const GENERAL_SETTINGS_KEY = "general";
 export const CURRENCIES = ["INR", "USD", "EUR", "GBP"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  INR: "₹",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+};
+
+/** Symbol for a currency code, falling back to the code itself. */
+export function currencySymbol(code: string): string {
+  return (CURRENCY_SYMBOLS as Record<string, string>)[code] ?? code;
+}
+
 export const generalSettingsSchema = z.object({
   appName: z.string().trim().min(1, "App name is required.").max(80),
   supportEmail: z.union([

@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "serves_per_person" text;

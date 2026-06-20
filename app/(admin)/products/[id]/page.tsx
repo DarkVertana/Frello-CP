@@ -8,6 +8,7 @@ import {
   getProductWithCategoryById,
   listCategoryOptions,
 } from "@/lib/data/products";
+import { getActiveCurrency } from "@/lib/data/settings";
 import { LOW_STOCK_THRESHOLD } from "@/lib/schemas/product";
 import { formatAmount, formatDateTime } from "@/lib/format";
 import { Card } from "../../_components/card";
@@ -36,7 +37,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
   if (!product) notFound();
 
   const writable = canManage(session.user.role);
-  const categories = writable ? await listCategoryOptions() : [];
+  const [categories, currency] = await Promise.all([
+    writable ? listCategoryOptions() : Promise.resolve([]),
+    getActiveCurrency(),
+  ]);
 
   const lowStock = product.stock < LOW_STOCK_THRESHOLD;
   const discount =
@@ -120,11 +124,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <Card>
             <div className="flex flex-wrap items-end gap-3">
               <span className="text-3xl font-semibold tracking-tight text-foreground">
-                {formatAmount(product.price)}
+                {formatAmount(product.price, currency)}
               </span>
               {product.originalPrice ? (
                 <span className="text-lg text-muted line-through">
-                  {formatAmount(product.originalPrice)}
+                  {formatAmount(product.originalPrice, currency)}
                 </span>
               ) : null}
               {discount ? (
@@ -158,6 +162,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <span className="ml-1 text-xs text-muted">
                   ({product.reviewsCount})
                 </span>
+              </Stat>
+              <Stat label="Serves / person">
+                {product.servesPerPerson ?? "—"}
               </Stat>
               <Stat label="Category">
                 {product.category?.name ?? "—"}

@@ -48,6 +48,8 @@ export const products = pgTable(
     rating: real("rating").notNull().default(0),
     reviewsCount: integer("reviews_count").notNull().default(0),
     stock: integer("stock").notNull().default(0),
+    /** Suggested quantity served per person, e.g. "2 plants" or "100 g". */
+    servesPerPerson: text("serves_per_person"),
     isActive: boolean("is_active").notNull().default(true),
     imageUrl: text("image_url").notNull(),
     gallery: text("gallery").array().notNull().default([]),

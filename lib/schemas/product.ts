@@ -24,6 +24,8 @@ export const productCreateSchema = z.object({
   rating: z.number().min(0, "Rating starts at 0.").max(5, "Rating maxes at 5.").default(0),
   reviewsCount: z.number().int().min(0).default(0),
   stock: z.number().int().min(0, "Stock can't be negative.").default(0),
+  /** Suggested serving per person, e.g. "2 plants". Empty string clears it. */
+  servesPerPerson: z.string().trim().max(80).optional().or(z.literal("")),
   isActive: z.boolean().default(true),
   imageUrl: z.url("Add a product image."),
   gallery: z.array(z.url()).max(20, "Up to 20 gallery images.").default([]),

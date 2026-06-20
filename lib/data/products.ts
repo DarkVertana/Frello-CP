@@ -206,6 +206,7 @@ export async function createProduct(input: ProductCreateInput): Promise<Product>
       rating: input.rating,
       reviewsCount: input.reviewsCount,
       stock: input.stock,
+      servesPerPerson: input.servesPerPerson ? input.servesPerPerson : null,
       isActive: input.isActive,
       imageUrl: input.imageUrl,
       gallery: input.gallery,
@@ -245,6 +246,8 @@ export async function updateProduct(
   if (patch.rating !== undefined) next.rating = patch.rating;
   if (patch.reviewsCount !== undefined) next.reviewsCount = patch.reviewsCount;
   if (patch.stock !== undefined) next.stock = patch.stock;
+  if (patch.servesPerPerson !== undefined)
+    next.servesPerPerson = patch.servesPerPerson ? patch.servesPerPerson : null;
   if (patch.isActive !== undefined) next.isActive = patch.isActive;
   if (patch.imageUrl !== undefined) next.imageUrl = patch.imageUrl;
   if (patch.gallery !== undefined) next.gallery = patch.gallery;
@@ -332,6 +335,7 @@ export function productDiff(
     "rating",
     "reviewsCount",
     "stock",
+    "servesPerPerson",
     "isActive",
     "imageUrl",
     "accent",

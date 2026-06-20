@@ -3,6 +3,11 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { settings, type Setting } from "@/db/schema";
 import { APIError } from "@/lib/api/response";
+import {
+  GENERAL_SETTINGS_KEY,
+  parseGeneralSettings,
+  type Currency,
+} from "@/lib/schemas/general";
 
 export async function listSettings(): Promise<Setting[]> {
   return db.select().from(settings).orderBy(asc(settings.key));
@@ -11,6 +16,22 @@ export async function listSettings(): Promise<Setting[]> {
 export async function getSettingByKey(key: string): Promise<Setting | null> {
   const [row] = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
   return row ?? null;
+}
+
+/** Store-wide currency from General settings (defaults to INR). */
+export async function getActiveCurrency(): Promise<Currency> {
+  const row = await getSettingByKey(GENERAL_SETTINGS_KEY);
+  return parseGeneralSettings(row?.value).currency;
+}
+
+/** Public config the mobile app reads (no auth) to render prices/branding. */
+export async function getPublicConfig(): Promise<{
+  currency: Currency;
+  appName: string;
+}> {
+  const row = await getSettingByKey(GENERAL_SETTINGS_KEY);
+  const general = parseGeneralSettings(row?.value);
+  return { currency: general.currency, appName: general.appName };
 }
 
 /**

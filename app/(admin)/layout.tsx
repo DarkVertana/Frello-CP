@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { isAdmin } from "@/lib/rbac";
+import { getActiveCurrency } from "@/lib/data/settings";
 import { Sidebar } from "./_components/sidebar";
 import { Header } from "./_components/header";
+import { CurrencyProvider } from "./_components/currency-provider";
 
 /**
  * Server-enforced auth gate for every admin route. Redirects:
@@ -23,19 +25,23 @@ export default async function AdminLayout({
   const role = session.user.role ?? "viewer";
   if (!isAdmin(role)) redirect("/");
 
+  const currency = await getActiveCurrency();
+
   return (
-    <div className="flex h-dvh overflow-hidden bg-background">
-      <Sidebar role={role} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header
-          user={{
-            name: session.user.name,
-            email: session.user.email,
-            role,
-          }}
-        />
-        <main className="min-h-0 flex-1 overflow-auto px-6 py-6">{children}</main>
+    <CurrencyProvider value={currency}>
+      <div className="flex h-dvh overflow-hidden bg-background">
+        <Sidebar role={role} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Header
+            user={{
+              name: session.user.name,
+              email: session.user.email,
+              role,
+            }}
+          />
+          <main className="min-h-0 flex-1 overflow-auto px-6 py-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </CurrencyProvider>
   );
 }

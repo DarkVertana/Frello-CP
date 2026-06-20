@@ -12,11 +12,20 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
   timeStyle: "short",
 });
 
-const currencyFormatter = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
+function currencyFormatter(currency: string): Intl.NumberFormat {
+  let formatter = currencyFormatters.get(currency);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+    currencyFormatters.set(currency, formatter);
+  }
+  return formatter;
+}
 
 export function formatDate(value: Date | string | null | undefined): string {
   if (!value) return "—";
@@ -33,11 +42,14 @@ export function formatDateTime(value: Date | string | null | undefined): string 
 }
 
 /**
- * Format a paise amount (smallest INR unit) as a localised string.
+ * Format a minor-unit amount (paise/cents — 1/100 of the major unit) as a
+ * localised currency string. Defaults to INR; pass the store's configured
+ * currency to render in it.
  *   formatAmount(12500) → "₹125"
+ *   formatAmount(12500, "USD") → "$125"
  */
-export function formatAmount(paise: number): string {
-  return currencyFormatter.format(paise / 100);
+export function formatAmount(amount: number, currency: string = "INR"): string {
+  return currencyFormatter(currency).format(amount / 100);
 }
 
 /** Compact relative time — "2h ago", "3 days ago", "Just now". */

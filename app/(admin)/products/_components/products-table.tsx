@@ -17,6 +17,7 @@ import { LOW_STOCK_THRESHOLD } from "@/lib/schemas/product";
 import { ActiveBadge } from "./active-badge";
 import { ProductModal } from "./product-modal";
 import { Banner } from "@/app/(auth)/_components/banner";
+import { useCurrency } from "../../_components/currency-provider";
 import { formatAmount, formatRelative } from "@/lib/format";
 
 type CategoryOption = { id: string; name: string; slug: string };
@@ -41,6 +42,7 @@ const SORTABLE_FIELDS: ProductSortField[] = [
 export function ProductsTable({ rows, sort, canManage, categories }: Props) {
   const router = useRouter();
   const params = useSearchParams();
+  const currency = useCurrency();
   const [, startTransition] = useTransition();
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -285,11 +287,11 @@ export function ProductsTable({ rows, sort, canManage, categories }: Props) {
                       </td>
                       <td className="px-4 py-3 text-right align-middle text-sm">
                         <div className="font-medium text-foreground">
-                          {formatAmount(row.price)}
+                          {formatAmount(row.price, currency)}
                         </div>
                         {row.originalPrice ? (
                           <div className="text-xs text-muted line-through">
-                            {formatAmount(row.originalPrice)}
+                            {formatAmount(row.originalPrice, currency)}
                           </div>
                         ) : null}
                       </td>
