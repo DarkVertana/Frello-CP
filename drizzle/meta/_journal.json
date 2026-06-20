@@ -64,6 +64,13 @@
       "when": 1781988593978,
       "tag": "0008_white_iron_monger",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781989916878,
+      "tag": "0009_lyrical_bishop",
+      "breakpoints": true
     }
   ]
 }

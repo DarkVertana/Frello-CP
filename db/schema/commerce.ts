@@ -163,12 +163,44 @@ export const savedProductsRelations = relations(savedProducts, ({ one }) => ({
   }),
 }));
 
+/**
+ * Per-user shopping cart. One row per (user, product) — adding an existing
+ * product bumps its quantity. Deleting a product cascades its cart rows away.
+ */
+export const cartItems = pgTable(
+  "cart_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    /** FK to Better Auth `user.id` (text, no DB-level FK — same as orders). */
+    userId: text("user_id").notNull(),
+    productId: uuid("product_id")
+      .references(() => products.id, { onDelete: "cascade" })
+      .notNull(),
+    quantity: integer("quantity").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("cart_items_user_product_idx").on(table.userId, table.productId),
+    index("cart_items_user_idx").on(table.userId),
+  ],
+);
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  product: one(products, {
+    fields: [cartItems.productId],
+    references: [products.id],
+  }),
+}));
+
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type SavedProduct = typeof savedProducts.$inferSelect;
 export type NewSavedProduct = typeof savedProducts.$inferInsert;
+export type CartItem = typeof cartItems.$inferSelect;
+export type NewCartItem = typeof cartItems.$inferInsert;
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type OrderItem = typeof orderItems.$inferSelect;
