@@ -199,6 +199,11 @@ function SortableRow({
 
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-foreground">{category.name}</div>
+        {category.description ? (
+          <div className="truncate text-xs text-foreground/70">
+            {category.description}
+          </div>
+        ) : null}
         <div className="truncate text-xs text-muted">
           /{category.slug} · icon: {category.icon}
         </div>

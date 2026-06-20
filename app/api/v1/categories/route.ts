@@ -50,7 +50,14 @@ export function POST(request: NextRequest) {
       action: "category.create",
       entityType: "category",
       entityId: row.id,
-      diff: { after: { name: row.name, slug: row.slug, icon: row.icon } },
+      diff: {
+        after: {
+          name: row.name,
+          slug: row.slug,
+          description: row.description,
+          icon: row.icon,
+        },
+      },
     });
 
     return created(row);

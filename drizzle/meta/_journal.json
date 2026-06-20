@@ -50,6 +50,13 @@
       "when": 1781986085841,
       "tag": "0006_plain_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781987707470,
+      "tag": "0007_smooth_steve_rogers",
+      "breakpoints": true
     }
   ]
 }

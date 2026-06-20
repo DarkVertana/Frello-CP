@@ -24,6 +24,7 @@ export const categories = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    description: text("description"),
     /** Lucide icon name (e.g. "sprout"). */
     icon: text("icon").notNull(),
     order: integer("order").notNull().default(0),

@@ -26,6 +26,13 @@ export const categoryCreateSchema = z.object({
     .min(1, "Name is required.")
     .max(80, "Name must be 80 characters or fewer."),
   slug: slugSchema,
+  /** Short blurb shown under the category. Empty string clears it. */
+  description: z
+    .string()
+    .trim()
+    .max(280, "Description must be 280 characters or fewer.")
+    .optional()
+    .or(z.literal("")),
   /** Lucide icon name (e.g. "sprout"). Loose validation by design. */
   icon: z
     .string()

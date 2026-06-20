@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Field } from "@/app/(auth)/_components/field";
+import { Search } from "lucide-react";
+import { Field, fieldInputClass } from "@/app/(auth)/_components/field";
 import { Banner } from "@/app/(auth)/_components/banner";
 import { SpinnerIcon } from "@/app/_components/icons";
 import { ICON_PRESET_NAMES, PresetIcon } from "@/lib/icons";
@@ -26,26 +27,34 @@ export function CategoryForm({ category, onSuccess }: Props) {
   const isEdit = !!category;
 
   const [name, setName] = useState(category?.name ?? "");
-  const [slug, setSlug] = useState(category?.slug ?? "");
-  const [slugDirty, setSlugDirty] = useState(false);
+  const [description, setDescription] = useState(category?.description ?? "");
   const [icon, setIcon] = useState(category?.icon ?? "sprout");
+  const [iconQuery, setIconQuery] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  function onNameChange(value: string) {
-    setName(value);
-    // Auto-fill the slug while the user hasn't touched it. In edit mode we
-    // leave the existing slug alone so renames don't break product URLs.
-    if (!slugDirty && !isEdit) setSlug(slugify(value));
-  }
+  const filteredIcons = useMemo(() => {
+    const q = iconQuery.trim().toLowerCase();
+    if (!q) return ICON_PRESET_NAMES;
+    return ICON_PRESET_NAMES.filter((presetName) => presetName.includes(q));
+  }, [iconQuery]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setFieldErrors({});
 
-    const payload = { name: name.trim(), slug: slug.trim(), icon };
+    // Slug is derived, not user-edited. New categories slugify their name;
+    // existing ones keep their slug so product/catalog URLs don't break.
+    const slug = isEdit ? category.slug : slugify(name.trim());
+
+    const payload = {
+      name: name.trim(),
+      slug,
+      description: description.trim(),
+      icon,
+    };
     const parsed = categoryCreateSchema.safeParse(payload);
     if (!parsed.success) {
       const fields: Record<string, string> = {};
@@ -54,6 +63,8 @@ export function CategoryForm({ category, onSuccess }: Props) {
         if (!fields[path]) fields[path] = issue.message;
       }
       setFieldErrors(fields);
+      // A slug problem (collision/empty) has no visible field — surface it.
+      if (fields.slug && !fields.name) setError(fields.slug);
       return;
     }
 
@@ -89,11 +100,11 @@ export function CategoryForm({ category, onSuccess }: Props) {
 
       <div>
         <Field
-          label="Name"
+          label="Title"
           id="name"
           name="name"
           value={name}
-          onChange={(event) => onNameChange(event.currentTarget.value)}
+          onChange={(event) => setName(event.currentTarget.value)}
           placeholder="e.g. Fertilizers"
           required
           autoFocus
@@ -102,47 +113,77 @@ export function CategoryForm({ category, onSuccess }: Props) {
       </div>
 
       <div>
-        <Field
-          label="Slug"
-          id="slug"
-          name="slug"
-          value={slug}
-          onChange={(event) => {
-            setSlugDirty(true);
-            setSlug(event.currentTarget.value);
-          }}
-          placeholder="fertilizers"
-          required
+        <label htmlFor="description" className="block text-sm font-medium text-foreground">
+          Description
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          value={description}
+          onChange={(event) => setDescription(event.currentTarget.value)}
+          rows={3}
+          maxLength={280}
+          placeholder="Short blurb shown under the category."
+          className={`mt-1.5 ${fieldInputClass}`}
         />
-        <p className="mt-1.5 text-xs text-muted">
-          URL-safe identifier. Lowercase letters, numbers, and hyphens.
-        </p>
-        {fieldErrors.slug ? <FieldError>{fieldErrors.slug}</FieldError> : null}
+        <p className="mt-1.5 text-xs text-muted">Optional · up to 280 characters.</p>
+        {fieldErrors.description ? (
+          <FieldError>{fieldErrors.description}</FieldError>
+        ) : null}
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium text-foreground">Icon</legend>
-        <div className="grid grid-cols-6 gap-2 sm:grid-cols-9">
-          {ICON_PRESET_NAMES.map((presetName) => {
-            const selected = icon === presetName;
-            return (
-              <button
-                key={presetName}
-                type="button"
-                onClick={() => setIcon(presetName)}
-                aria-pressed={selected}
-                title={presetName}
-                className={
-                  selected
-                    ? "flex aspect-square items-center justify-center rounded-input border-2 border-tint bg-tint-soft text-tint-dark"
-                    : "flex aspect-square items-center justify-center rounded-input border border-border text-muted transition hover:border-tint/40 hover:bg-tint-soft hover:text-foreground"
-                }
-              >
-                <PresetIcon name={presetName} className="size-5" aria-hidden="true" />
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between gap-3">
+          <legend className="text-sm font-medium text-foreground">Icon</legend>
+          <span className="flex size-9 items-center justify-center rounded-input border border-tint/40 bg-tint-soft text-tint-dark">
+            <PresetIcon name={icon} className="size-5" aria-hidden="true" />
+          </span>
         </div>
+
+        <label className="flex items-center gap-2 rounded-input bg-background px-3 py-2 ring-1 ring-border focus-within:ring-tint">
+          <Search className="size-4 text-muted" aria-hidden="true" />
+          <input
+            type="search"
+            value={iconQuery}
+            onChange={(event) => setIconQuery(event.currentTarget.value)}
+            placeholder="Search icons…"
+            aria-label="Search icons"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
+          />
+        </label>
+
+        <div className="max-h-56 overflow-y-auto rounded-input border border-border p-2">
+          {filteredIcons.length === 0 ? (
+            <p className="px-1 py-6 text-center text-sm text-muted">
+              No icons match “{iconQuery}”.
+            </p>
+          ) : (
+            <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
+              {filteredIcons.map((presetName) => {
+                const selected = icon === presetName;
+                return (
+                  <button
+                    key={presetName}
+                    type="button"
+                    onClick={() => setIcon(presetName)}
+                    aria-pressed={selected}
+                    title={presetName}
+                    className={
+                      selected
+                        ? "flex aspect-square items-center justify-center rounded-input border-2 border-tint bg-tint-soft text-tint-dark"
+                        : "flex aspect-square items-center justify-center rounded-input border border-border text-muted transition hover:border-tint/40 hover:bg-tint-soft hover:text-foreground"
+                    }
+                  >
+                    <PresetIcon name={presetName} className="size-5" aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-muted">
+          {ICON_PRESET_NAMES.length} icons available.
+        </p>
         <input type="hidden" name="icon" value={icon} />
         {fieldErrors.icon ? <FieldError>{fieldErrors.icon}</FieldError> : null}
       </fieldset>

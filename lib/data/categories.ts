@@ -110,7 +110,11 @@ export async function createCategory(input: CategoryCreateInput): Promise<Catego
 
   const [row] = await db
     .insert(categories)
-    .values({ ...input, order: existingCount })
+    .values({
+      ...input,
+      description: input.description ? input.description : null,
+      order: existingCount,
+    })
     .returning();
 
   if (!row) throw new APIError("INTERNAL", "Failed to create category.");
@@ -135,9 +139,17 @@ export async function updateCategory(
     }
   }
 
+  const next: Partial<typeof categories.$inferInsert> = {
+    ...patch,
+    updatedAt: new Date(),
+  };
+  if (patch.description !== undefined) {
+    next.description = patch.description ? patch.description : null;
+  }
+
   const [after] = await db
     .update(categories)
-    .set({ ...patch, updatedAt: new Date() })
+    .set(next)
     .where(eq(categories.id, id))
     .returning();
 
@@ -199,7 +211,7 @@ export function categoryDiff(
   after: Category,
 ): Record<string, { from: unknown; to: unknown }> {
   const diff: Record<string, { from: unknown; to: unknown }> = {};
-  const keys: (keyof Category)[] = ["name", "slug", "icon", "order"];
+  const keys: (keyof Category)[] = ["name", "slug", "description", "icon", "order"];
   for (const key of keys) {
     if (before[key] !== after[key]) {
       diff[key] = { from: before[key], to: after[key] };
