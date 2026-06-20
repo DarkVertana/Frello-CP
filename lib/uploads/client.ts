@@ -8,7 +8,7 @@
  */
 export async function uploadImage(
   file: File,
-  prefix: "products" | "supplements" | "scans" | "tickets",
+  prefix: "products" | "supplements" | "scans" | "tickets" | "blogs",
 ): Promise<string> {
   const form = new FormData();
   form.append("file", file);

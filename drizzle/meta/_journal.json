@@ -71,6 +71,13 @@
       "when": 1781989916878,
       "tag": "0009_lyrical_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1781991152490,
+      "tag": "0010_ambitious_firelord",
+      "breakpoints": true
     }
   ]
 }

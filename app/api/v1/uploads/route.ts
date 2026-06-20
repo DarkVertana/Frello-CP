@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/api/auth";
 import { canManage } from "@/lib/rbac";
 import { isCloudinaryConfigured, uploadToCloudinary } from "@/lib/storage/cloudinary";
 
-const ALLOWED_PREFIXES = ["products", "supplements", "scans", "tickets"] as const;
+const ALLOWED_PREFIXES = ["products", "supplements", "scans", "tickets", "blogs"] as const;
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const IMAGE_TYPE = /^image\/(png|jpe?g|webp|gif|avif)$/i;
 

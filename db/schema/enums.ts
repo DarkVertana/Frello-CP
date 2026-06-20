@@ -76,3 +76,5 @@ export const consultationStatus = pgEnum("consultation_status", [
   "completed",
   "cancelled",
 ]);
+
+export const blogStatus = pgEnum("blog_status", ["draft", "published"]);

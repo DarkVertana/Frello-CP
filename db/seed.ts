@@ -1,6 +1,6 @@
 import "./env";
 import { db } from "./index";
-import { categories, diseases, products, settings, supplements } from "./schema";
+import { blogs, categories, diseases, products, settings, supplements } from "./schema";
 
 /**
  * Development seed for Plant+.
@@ -185,6 +185,76 @@ async function seed() {
         ],
         supplementId: neem?.id,
         severity: "high",
+      },
+    ])
+    .onConflictDoNothing();
+
+  // --- Blogs (sample posts; content is HTML authored in the admin editor) -
+  const now = new Date();
+  await db
+    .insert(blogs)
+    .values([
+      {
+        title: "5 Beginner-Friendly Houseplants That Thrive Indoors",
+        slug: "beginner-friendly-houseplants",
+        excerpt:
+          "New to plant care? Start with these forgiving, low-light champions.",
+        featuredImageUrl:
+          "https://placehold.co/1200x675/138A4C/FFFFFF?text=Houseplants",
+        tags: ["houseplants", "beginner", "indoor"],
+        status: "published",
+        publishedAt: now,
+        content:
+          "<h2>Start here</h2><p>If you've killed a plant or two, you're not alone. These five are famously hard to kill and perfect for building confidence.</p><ul><li><strong>Snake Plant</strong> — tolerates low light and infrequent watering.</li><li><strong>Pothos</strong> — trails beautifully and forgives missed waterings.</li><li><strong>ZZ Plant</strong> — thrives on neglect.</li><li><strong>Spider Plant</strong> — fast-growing and pet-friendly.</li><li><strong>Peace Lily</strong> — tells you when it's thirsty by drooping.</li></ul><blockquote>Tip: most beginners overwater. When in doubt, wait a day.</blockquote>",
+      },
+      {
+        title: "How to Make Your Own Organic Compost at Home",
+        slug: "organic-compost-at-home",
+        excerpt:
+          "Turn kitchen scraps into black gold with this simple 4-step routine.",
+        featuredImageUrl:
+          "https://placehold.co/1200x675/8B5E34/FFFFFF?text=Compost",
+        tags: ["composting", "organic", "soil"],
+        status: "published",
+        publishedAt: now,
+        content:
+          "<h2>Why compost?</h2><p>Compost feeds your soil, cuts waste, and saves money on fertilizer.</p><h3>The 4 steps</h3><ol><li>Collect greens (veg scraps) and browns (dry leaves, cardboard).</li><li>Layer roughly 1 part greens to 2 parts browns.</li><li>Keep it moist like a wrung-out sponge.</li><li>Turn it weekly for airflow.</li></ol><p>In 6–8 weeks you'll have crumbly, earthy compost ready for your beds.</p>",
+      },
+      {
+        title: "Spotting & Treating Early Blight on Tomatoes",
+        slug: "early-blight-on-tomatoes",
+        excerpt:
+          "Those concentric brown rings aren't normal — here's how to act fast.",
+        featuredImageUrl:
+          "https://placehold.co/1200x675/2E7D32/FFFFFF?text=Tomato+Care",
+        tags: ["tomatoes", "disease", "treatment"],
+        status: "published",
+        publishedAt: now,
+        content:
+          "<h2>What it looks like</h2><p>Early blight starts on older, lower leaves as dark spots with <em>concentric rings</em>, often surrounded by a yellow halo.</p><h3>Treat it</h3><ul><li>Remove and destroy affected leaves immediately.</li><li>Mulch to stop soil splashing spores onto leaves.</li><li>Water at the base, never overhead.</li><li>Apply a copper-based or neem spray weekly until controlled.</li></ul><p>Scan a leaf in the app for an instant diagnosis and product suggestions.</p>",
+      },
+      {
+        title: "Monsoon Plant Care: A Quick Checklist",
+        slug: "monsoon-plant-care-checklist",
+        excerpt: "Heavy rain brings fungus and root rot. Keep your garden happy.",
+        featuredImageUrl:
+          "https://placehold.co/1200x675/1565C0/FFFFFF?text=Monsoon+Care",
+        tags: ["seasonal", "care", "monsoon"],
+        status: "published",
+        publishedAt: now,
+        content:
+          "<h2>Before the rains</h2><ul><li>Check drainage holes — pots must never sit in water.</li><li>Move delicate plants under cover.</li></ul><h2>During the rains</h2><ul><li>Skip watering on wet days.</li><li>Watch for fungal spots and treat early.</li><li>Stake tall plants against wind.</li></ul>",
+      },
+      {
+        title: "Choosing the Right Fertilizer for Your Garden",
+        slug: "choosing-the-right-fertilizer",
+        excerpt: "NPK, organic vs synthetic — a plain-English guide. (Draft)",
+        featuredImageUrl:
+          "https://placehold.co/1200x675/0A8F3C/FFFFFF?text=Fertilizer",
+        tags: ["fertilizer", "guide"],
+        status: "draft",
+        content:
+          "<h2>Understanding NPK</h2><p>The three numbers on every fertilizer bag are Nitrogen, Phosphorus, and Potassium…</p><p><em>This post is still a work in progress.</em></p>",
       },
     ])
     .onConflictDoNothing();

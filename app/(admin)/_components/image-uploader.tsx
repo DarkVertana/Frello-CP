@@ -9,7 +9,7 @@ import { SpinnerIcon } from "@/app/_components/icons";
 
 type Props = {
   /** Object key prefix — separates products/supplements/etc. into folders. */
-  prefix: "products" | "supplements" | "scans" | "tickets";
+  prefix: "products" | "supplements" | "scans" | "tickets" | "blogs";
   /** Current URL (empty string = no image). */
   value: string;
   onChange: (next: string) => void;

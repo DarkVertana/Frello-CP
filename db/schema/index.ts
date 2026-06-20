@@ -15,3 +15,4 @@ export * from "./customer";
 export * from "./support";
 export * from "./plants";
 export * from "./ops";
+export * from "./blog";
