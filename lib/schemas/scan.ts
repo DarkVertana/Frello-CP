@@ -24,6 +24,38 @@ export const scanListFiltersSchema = z.object({
   to: isoDate.optional(),
 });
 
+/**
+ * Mobile app records a leaf-disease scan. The three infection fields are the
+ * core payload (mapped into the frozen `diagnosisSnapshot`); the rest is
+ * optional scan metadata. `prevention` accepts an array or a newline-separated
+ * string and is normalised to a string array.
+ */
+export const scanCreateSchema = z.object({
+  photoUrl: z.string().trim().min(1, "Photo is required.").max(2000),
+  infectionTitle: z.string().trim().min(1, "Infection title is required.").max(200),
+  infectionDetail: z
+    .string()
+    .trim()
+    .min(1, "Infection detail is required.")
+    .max(5000),
+  infectionPrevention: z
+    .union([
+      z.array(z.string().trim().min(1).max(1000)).max(50),
+      z.string().trim().min(1).max(5000),
+    ])
+    .transform((v) =>
+      Array.isArray(v) ? v : v.split("\n").map((s) => s.trim()).filter(Boolean),
+    ),
+  crop: z.string().trim().max(120).optional(),
+  /** Defaults to the infection title when omitted. */
+  predictedLabel: z.string().trim().max(120).optional(),
+  confidence: z.coerce.number().min(0).max(1).optional(),
+  healthy: z.boolean().optional(),
+  severity: z.enum(["low", "medium", "high"]).optional(),
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+});
+
 export const scanFlagSchema = z.object({
   flagged: z.boolean(),
 });
@@ -38,6 +70,7 @@ export const scanUpdateSchema = z.object({
     .or(z.literal("")),
 });
 
+export type ScanCreateInput = z.infer<typeof scanCreateSchema>;
 export type ScanListFilters = z.infer<typeof scanListFiltersSchema>;
 export type ScanFlagInput = z.infer<typeof scanFlagSchema>;
 export type ScanUpdateInput = z.infer<typeof scanUpdateSchema>;

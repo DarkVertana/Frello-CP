@@ -14,11 +14,13 @@ import {
   diseases,
   scans,
   user,
+  type DiagnosisSnapshot,
   type Scan,
   type Disease,
 } from "@/db/schema";
 import { APIError, type ListMeta } from "@/lib/api/response";
 import type {
+  ScanCreateInput,
   ScanListFilters,
   ScanUpdateInput,
 } from "@/lib/schemas/scan";
@@ -182,6 +184,50 @@ export async function getScanById(id: string): Promise<ScanDetail | null> {
         : null,
     disease: head.disease && head.disease.label ? head.disease : null,
   };
+}
+
+/**
+ * Record a leaf-disease scan from the app. The infection title/detail/prevention
+ * are frozen into `diagnosisSnapshot` (mirrors the diagnosis card the user saw);
+ * `predictedLabel` defaults to the title and `confidence` to full certainty.
+ */
+export async function createScan(
+  input: ScanCreateInput & { userId: string },
+): Promise<Scan> {
+  const label = input.predictedLabel?.trim() || input.infectionTitle;
+
+  const snapshot: DiagnosisSnapshot = {
+    label,
+    crop: input.crop ?? "",
+    disease: input.infectionTitle,
+    healthy: input.healthy ?? false,
+    description: input.infectionDetail,
+    prevention: input.infectionPrevention,
+    severity: input.severity ?? "medium",
+  };
+
+  const [row] = await db
+    .insert(scans)
+    .values({
+      userId: input.userId,
+      photoUrl: input.photoUrl,
+      predictedLabel: label,
+      confidence: input.confidence ?? 1,
+      diagnosisSnapshot: snapshot,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+    })
+    .returning();
+  if (!row) throw new APIError("INTERNAL", "Failed to record scan.");
+  return row;
+}
+
+export async function deleteScan(id: string): Promise<Scan> {
+  const [before] = await db.select().from(scans).where(eq(scans.id, id)).limit(1);
+  if (!before) throw new APIError("NOT_FOUND", "Scan not found.");
+  const [deleted] = await db.delete(scans).where(eq(scans.id, id)).returning();
+  if (!deleted) throw new APIError("INTERNAL", "Failed to delete scan.");
+  return deleted;
 }
 
 export async function setScanFlag(
