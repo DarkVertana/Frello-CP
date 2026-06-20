@@ -147,8 +147,7 @@ export function ImageUploader({
 
       <div className="text-xs">
         <span className="text-muted">
-          PNG/JPEG/WebP/AVIF up to your bucket&apos;s limit. Files upload
-          directly via presigned PUT.
+          PNG/JPEG/WebP/AVIF/GIF up to 10 MB. Stored on Cloudinary.
         </span>
         {error ? (
           <p role="alert" className="mt-1 text-danger">
